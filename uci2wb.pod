@@ -1,0 +1,105 @@
+=head1 NAME
+
+uci2wb - Protocol adapter for UCI dialects to XBoard
+
+
+=head1 SYNOPSIS
+
+B<uci2wb> [debug] [-var <variant>] [-c|-s|-x] engine [directory]
+
+
+=head1 DESCRIPTION
+
+B<uci2wb> is a protocol adapter, i.e. it can be used to run AI plugins ('engines')
+that communicate in one protocol in a GUI that communicates in another.
+In this case uci2wb can make appear the engine specified in its argument,
+which must use a protocol similar to UCI ('Universal Chess Interface'),
+to the GUI as an engine using XBoard protocol
+('Chess Engine Communication Protocol', CECP).
+
+The protocols for which it can mediate are UCI
+(both the official standard, as well as the 'Cyclone dialect' that is commonly used
+by Chinese-Chess engines, and the 'Arena960 dialect' used by pre-standard Chess960 engines),
+USI ('Universal Shogi Interface', used by some Shogi engines)
+and UCCI ('Universal Chinese-Chess Interface').
+When set to UCI, it automatically uses Cyclone dialect when playing xiangqi games.
+
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-c -s -x -f>
+
+The flag arguments B<-c> (default), B<-s> or B<-x> set uci2wb to use UCI, USI or UCCI, respectively.
+If there is more than one character in the flag argument,
+all characters but the first are ignored.
+This can be used by passing uci2wb the full variant name ('shogi' or 'xiangqi') as a flag,
+to make it automatically choose the appropriate protocol (USI or UCCI).
+Other values also select UCI, but the value B<-f> in addition implies uci2wb should announce
+it supports Chess960 even for UCI engines that don't have the standard UCI_Chess960 option,
+and in that case causes castlings to be sent to them as O-O or O-O-O
+instead of the standard KxR notation.
+
+=item B<-var <variant>>
+
+Forces uci2wb to announce to the GUI it supports (only) the specified variant.
+Although a UCI_Variant option has been proposed as a way for UxI engines to announce what they can play,
+(and is supported by uci2wb), not many engines implement this.
+So if these are not the standard variants implied by the protocol choice,
+(but, f.e. seirawan or 6x6+6_shogi) it has to be configured on the
+uci2wb command line through this option.
+
+=item B<debug>
+
+Makes uci2wb report to the GUI everything it receives from the engine,
+as a CECP engine comment (i.e. prefixed with '#').
+This would make it appear in the GUI's log of the engine communication.
+Some critical commands it sends to the engine
+(such as the 'position-moves' and 'go' commands)
+will be reported as well.
+This option can also be switched interactively,
+through the 'UCI2WB debug output' checkbox option appearing
+as additional engine option.
+
+=item B<directory>
+
+If a directory is specified, the engine is started
+with that directory set as current directory.
+
+=item B<byoyomi work-arounds>
+
+Byoyomi is a mode of time control in USI not supported by CECP.
+Engines can be forced to run in this mode by letting the GUI use
+incremental or sudden-death TC,
+and ticking the interactive 'Floating Byoyomi' checkbox option
+that uci2wb pools with the engine options.
+An accompanying option 'Byoyomi (sec)' allows you to force a fixed
+value >= 0 for the byoyomi to be sent to the engine
+when 'Floating Byoyomi' is off.
+
+=back
+
+=head1 AVAILABILITY
+
+At http://hgm.nubati.net/cgi-bin/gitweb.cgi the source code can be obtained.
+
+=head1 SEE ALSO
+
+xboard(6)
+
+=head1 STANDARDS
+
+WinBoard, B<xboard>(6) interface ("Chess Engine Communication Protocol")
+
+UCI specs: http://www.shredderchess.com/chess-info/features/uci-universal-chess-interface.html
+
+USI specs: http://hgm.nubati.net/usi.html
+
+UCCI specs: http://www.xqbase.com/protocol/cchess_ucci.htm
+
+=head1 AUTHOR
+
+H.G.Muller <h.g.muller@hccnet.nl>.
+
+This manual page was generated with pod2man(1).
