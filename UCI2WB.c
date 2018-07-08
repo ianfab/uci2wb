@@ -256,7 +256,7 @@ GetChar()
 void *
 Engine2GUI()
 {
-    char line[1024], command[256]; static char egts[999];
+    char line[1024], command[512]; static char egts[999];
 
     if(fromF = fopen("DefectiveEngineOptions.ini", "r")) printf("# fake engine input\n");
     while(1) {
@@ -303,6 +303,7 @@ Engine2GUI()
 	    if(sscanf(line+5, "string times @ %c", &dummy) == 1) { printf("# %s", line+12); continue; }
 	    if(sscanf(line+5, "string variant %s", varName) == 1) {
 		if(!strstr(STDVARS, varName) && (p = strstr(line+18, " startpos "))) printf("setup (-) 8x8+0_fairy %s", p+10);
+		if(!strstr(STDVARS, varName) && (p = strstr(line+18, " setup "))) printf("setup %s", p+7);
 		continue;
 	    }
 	    if(collect && (pv = strstr(line+5, "currmove "))) {
