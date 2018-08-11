@@ -256,7 +256,7 @@ GetChar()
 void *
 Engine2GUI()
 {
-    char line[1024], command[256]; static char egts[999];
+    char line[1024], command[512]; static char egts[999];
 
     if(fromF = fopen("DefectiveEngineOptions.ini", "r")) printf("# fake engine input\n");
     while(1) {
