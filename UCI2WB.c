@@ -44,7 +44,7 @@
 
 char move[2000][10], iniPos[256], hashOpt[20], pause, pondering, suspended, ponder, post, hasHash, c, sc='c', suffix[81], varOpt, searching, *binary;
 int mps, tc, inc, sTime, depth, myTime, hisTime, stm, computer = NONE, memory, oldMem=0, cores, moveNr, lastDepth, lastScore, startTime, debug, flob;
-int statDepth, statScore, statNodes, statTime, currNr, size, collect, nr, sm, inex, on[500], frc, byo = -1, namOpt, comp;
+int statDepth, statScore, statNodes, statTime, currNr, files, ranks, collect, nr, sm, inex, on[500], frc, byo = -1, namOpt, comp;
 char currMove[20], moveMap[500][10], /* for analyze mode */ canPonder[20], threadOpt[20], varList[8000], anaOpt[20], backLog[10000], checkOptions[8192] = "Ponder";
 char pvs[99][999], board[100];  // XQ board for UCCI
 char *nameWord = "name ", *valueWord = "value ", *wTime = "w", *bTime = "b", *wInc = "winc", *bInc = "binc", newGame; // keywords that differ in UCCI
@@ -217,7 +217,9 @@ char *Convert(char *pv)
     if(sc != 's') return pv;
     p = pv; q = buf;
     while(c = *p++) {
-        if(c >= '0' && c <= '9' || c >= 'a' && c <= 'z') *q++ = 'a'+'0'+size - c; else *q++ = c;
+        if(c >= '0' && c <= '9') *q++ = 'a'+'0'+files - c;
+		else if (c >= 'a' && c <= 'z')  *q++ = 'a'+'0'+ranks - c;
+		else *q++ = c;
     }
     *q++ = 0;
     return buf;
@@ -228,15 +230,15 @@ Move4GUI(char *m)
 {
     if(sc == 's') {
       // convert USI move to WB format
-      m[2] = 'a'+'0'+size - m[2];
-      m[3] = 'a'+'0'+size - m[3];
+      m[2] = 'a'+'0'+files - m[2];
+      m[3] = 'a'+'0'+ranks - m[3];
       if(m[1] == '*') { // drop
 	m[1] = '@';
       } else {
-	m[0] = 'a'+'0'+size - m[0];
-	m[1] = 'a'+'0'+size - m[1];
-	if((stm == WHITE ? (m[1]>'0'+size-size/3 || m[3]>'0'+size-size/3)
-                                : (m[1] <= '0'+size/3 || m[3] <= '0'+size/3)) && m[4] != '+')
+	m[0] = 'a'+'0'+files - m[0];
+	m[1] = 'a'+'0'+ranks - m[1];
+	if((stm == WHITE ? (m[1]>'0'+ranks-ranks/3 || m[3]>'0'+ranks-ranks/3)
+                                : (m[1] <= '0'+ranks/3 || m[3] <= '0'+ranks/3)) && m[4] != '+')
 	     m[4] = '=', m[5] = 0;
       }
     }
@@ -302,8 +304,37 @@ Engine2GUI()
 	    char *pv, varName[80];
 	    if(sscanf(line+5, "string times @ %c", &dummy) == 1) { printf("# %s", line+12); continue; }
 	    if(sscanf(line+5, "string variant %s", varName) == 1) {
-		if(!strstr(STDVARS, varName) && (p = strstr(line+18, " startpos "))) printf("setup (-) 8x8+0_fairy %s", p+10);
-		continue;
+			if(!strstr(STDVARS, varName)) {
+				p = line + 21 + strlen(varName);
+				char token[128], keyword[128], pieces[128] = "-", fen[128] = "", template[128] = "fairy";
+				int n, filecount = 8, rankcount = 8, pocketsize = 0;
+				while (sscanf(p, "%127[^ \n]%n", token, &n) == 1)
+				{
+					if (   !strcmp(token, "startpos")   || !strcmp(token, "files") || !strcmp(token, "ranks")
+                                            || !strcmp(token, "pocketsize") || !strcmp(token, "template") || !strcmp(token, "pieces")) {
+						strcpy(keyword, token);
+					} else {
+						if (!strcmp(keyword, "startpos"))
+							strcat(strcat(fen, token), " ");
+						if (!strcmp(keyword, "files"))
+							sscanf(token, "%d", &filecount), files = filecount;
+						if (!strcmp(keyword, "ranks"))
+							sscanf(token, "%d", &rankcount), ranks = rankcount;
+						if (!strcmp(keyword, "pocketsize"))
+							sscanf(token, "%d", &pocketsize);
+						if (!strcmp(keyword, "template"))
+							strcpy(template, token);
+						if (!strcmp(keyword, "pieces"))
+							strcpy(pieces, token);
+					}
+					p += n;
+					if(*p != ' ' )
+						break;
+					++p;
+				}
+				printf("setup (%s) %dx%d+%d_%s %s\n", pieces, filecount, rankcount, pocketsize, template, fen);
+			}
+			continue;
 	    }
 	    if(collect && (pv = strstr(line+5, "currmove "))) {
 		if(p = strstr(line+5, "currmovenumber ")) {
@@ -416,11 +447,11 @@ Move4Engine(char *m)
       if(m[1] == '@') { // drop
 	m[1] = '*';
       } else {
-	m[0] = 'a'+'0'+size - m[0];
-	m[1] = 'a'+'0'+size - m[1];
+	m[0] = 'a'+'0'+files - m[0];
+	m[1] = 'a'+'0'+ranks - m[1];
       }
-      m[2] = 'a'+'0'+size - m[2];
-      m[3] = 'a'+'0'+size - m[3];
+      m[2] = 'a'+'0'+files - m[2];
+      m[3] = 'a'+'0'+ranks - m[3];
       if(m[4] == '=') m[4] = 0; // no '=' in USI format!
       else if(m[4]) m[4] = '+'; // cater to WB 4.4 bug :-(
     }
@@ -563,8 +594,8 @@ GUI2Engine()
 		    EPRINT((f, "# setoption name UCI_Variant value %sucinewgame\nisready\n", line+8))
 		    fflush(toE); Sync(PAUSE);
 		}
-		if(!strcmp(line+8, "shogi\n")) size = 9, strcpy(iniPos, "position startpos");
-		if(!strcmp(line+8, "5x5+5_shogi\n")) size = 5, strcpy(iniPos, "position startpos");
+		if(!strcmp(line+8, "shogi\n")) files = 9, ranks = 9, strcpy(iniPos, "position startpos");
+		if(!strcmp(line+8, "5x5+5_shogi\n")) files = 5, ranks = 5, strcpy(iniPos, "position startpos");
 		if(!strcmp(line+8, "xiangqi\n")) strcpy(iniPos, "fen rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR r");
 		if(!strcmp(line+8, "fischerandom\n")) { frc |= 1; if(frc > 0) EPRINT((f, "# setoption name UCI_Chess960 value true\n")) }
 	}
