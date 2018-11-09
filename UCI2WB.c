@@ -302,7 +302,15 @@ Engine2GUI()
 	    char *pv, varName[80];
 	    if(sscanf(line+5, "string times @ %c", &dummy) == 1) { printf("# %s", line+12); continue; }
 	    if(sscanf(line+5, "string variant %s", varName) == 1) {
-		if(!strstr(STDVARS, varName) && (p = strstr(line+18, " startpos "))) printf("setup (-) 8x8+0_fairy %s", p+10);
+		if(!strstr(STDVARS, varName)) {
+		    int files = 8, ranks = 8, hand = 0; char parent[80];
+		    if(p = strstr(line+18, " files ")) sscanf(p+7, "%d", &files);
+		    if(p = strstr(line+18, " ranks ")) sscanf(p+7, "%d", &ranks);
+		    if(p = strstr(line+18, " pocket ")) sscanf(p+8, "%d", &hand);
+		    if(p = strstr(line+18, " template ")) sscanf(p+10, "%s", parent); else strcpy(parent, "fairy");
+		    if(p = strstr(line+18, " startpos "))
+			printf("setup (-) %dx%d+%d_%s %s", files, ranks, hand, parent, p+10);
+		}
 		continue;
 	    }
 	    if(collect && (pv = strstr(line+5, "currmove "))) {
