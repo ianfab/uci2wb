@@ -309,7 +309,7 @@ Engine2GUI()
 		    if(p = strstr(line+18, " pocket ")) sscanf(p+8, "%d", &hand);
 		    if(p = strstr(line+18, " template ")) sscanf(p+10, "%s", parent); else strcpy(parent, "fairy");
 		    if(p = strstr(line+18, " startpos "))
-			printf("setup (-) %dx%d+%d_%s %s", files, ranks, hand, parent, p+10);
+			printf("setup (%s) %dx%d+%d_%s %s", strstr(varName, "5x5+5_shogi") || strstr(varName, "minishogi") || strstr(varName, "mini") ? "P.BR.S...G.+.++.+Kp.br.s...g.+.++.+k" : "-", files, ranks, hand, parent, p+10);
 		}
 		continue;
 	    }
@@ -572,7 +572,7 @@ GUI2Engine()
 		    fflush(toE); Sync(PAUSE);
 		}
 		if(!strcmp(line+8, "shogi\n")) size = 9, strcpy(iniPos, "position startpos");
-		if(!strcmp(line+8, "5x5+5_shogi\n")) size = 5, strcpy(iniPos, "position startpos");
+		if(!strcmp(line+8, "5x5+5_shogi\n") || !strcmp(line+8, "minishogi\n") || !strcmp(line+8, "mini\n")) size = 5, strcpy(iniPos, "position startpos");
 		if(!strcmp(line+8, "xiangqi\n")) strcpy(iniPos, "fen rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR r");
 		if(!strcmp(line+8, "fischerandom\n")) { frc |= 1; if(frc > 0) EPRINT((f, "# setoption name UCI_Chess960 value true\n")) }
 	}
