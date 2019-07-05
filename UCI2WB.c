@@ -31,7 +31,7 @@
 
 // Set VARIANTS for in WinBoard variant feature. (With -s option this will always be reset to use "shogi".)
 #define VARIANTS ",normal,xiangqi"
-#define STDVARS "chess,chess960,crazyhouse,3check,giveaway,suicide,losers,atomic,seirawan,shogi,xiangqi"
+#define STDVARS "chess,chess960,crazyhouse,3check,giveaway,suicide,losers,atomic,seirawan,shogi,xiangqi,capablanca,caparandom,janus,gothic,courier,asean,makruk,shatranj"
 #define EGT ",gaviotaTbPath,syzygyPath,nalimovPath,robbotripleBaseDirectory,robbototalBaseDirectory,bitbases path,"
 
 #define DPRINT if(debug) printf
